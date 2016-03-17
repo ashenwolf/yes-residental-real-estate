@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Yes Residental Real Estate Updater App</title>
+
+    <link rel="stylesheet" href="./vendor/mdl/material.min.css">
+    <link rel="stylesheet" href="./vendor/mdl/material-icons.css">
+    <link rel="stylesheet" href="./css/style.css">
+  </head>
+  <body>
+    <!-- Simple header with fixed tabs. -->
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header
+                mdl-layout--fixed-tabs mdl-layout--no-drawer-button">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <!-- Title -->
+          <div class="mdl-layout-icon"><i class="material-icons">home</i> &nbsp;</div>
+          <span class="mdl-layout-title">Yes Residental Real Estate Updater App</span>
+        </div>
+        <!-- Tabs -->
+        <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+          <span class="mdl-layout__tab tab-auth">Authenticate</span>
+          <span class="mdl-layout__tab tab-select">Select Sheet</span>
+          <span class="mdl-layout__tab tab-update">Update Data</span>
+        </div>
+      </header>
+      <main class="mdl-layout__content">
+        <section class="mdl-layout__tab-panel tab-auth">
+          <div class="page-content">
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--12-col">
+                <div id="google-auth" class="demo-card-wide mdl-card mdl-shadow--2dp">
+                  <div class="mdl-card__title">
+                    <h2 class="mdl-card__title-text">Authenticate with Google Drive</h2>
+                  </div>
+                  <div class="mdl-card__supporting-text">
+                    <p>You need to authenticate with the Google Drive for the software
+                    to access your Google Drive based spreadsheets.</p>
+                  </div>
+                  <div class="mdl-card__actions mdl-card--border">
+                    <div class="action-container">
+                      <a id="start-auth" class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect">
+                        Authenticate
+                      </a>
+                    </div>
+                    <div class="wait-container">
+                      <p>Authenticating and fetching your Google Spreadsheets...</p>
+                      <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="mdl-layout__tab-panel tab-select">
+          <div class="page-content">
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--12-col">
+                <div id="google-sheet" class="demo-card-wide mdl-card mdl-shadow--2dp">
+                  <div class="mdl-card__title">
+                    <h2 class="mdl-card__title-text">Select the Google Sheet</h2>
+                  </div>
+                  <div class="mdl-card__supporting-text">
+                    <p>You need to select the Google spreadheet to be used as
+                    destinantion for property updates.</p>
+                  </div>
+                  <div class="mdl-card__actions mdl-card--border">
+                    <ul id="sheets" class="demo-list-icon mdl-list">
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="mdl-layout__tab-panel tab-update">
+          <div class="page-content">
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--12-col">
+                <div id="google-sheet" class="demo-card-wide mdl-card mdl-shadow--2dp">
+                  <div class="mdl-card__title">
+                    <h2 class="mdl-card__title-text">Update the real estate data</h2>
+                  </div>
+                  <div class="mdl-card__supporting-text">
+                    <p>Used spreadsheet: <img src="./img/sheets.png" width="16px"> <span id="filename"></span></p>
+                    <p>Select the e-mail to be used as a source for the real estate
+                    data updates.</p>
+                  </div>
+                  <div class="mdl-card__actions mdl-card--border">
+                    <div class="action-container">
+                      <span id="estate-update" class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect">
+                        Choose mail and update real estate data
+                      </span>
+                    </div>
+                    <div class="wait-container">
+                      <p>Reading your mail and updating Google Spreadsheet...</p>
+                      <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      require('babel-register');
+      require('babel-polyfill');
+
+      window.$ = require('zepto-node')(window);
+      require('./vendor/mdl/material.min.js')
+      require('./js/app.js');
+    </script>
+  </body>
+</html>
