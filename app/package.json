@@ -1,8 +1,8 @@
 {
-  "name": "yes-residental-real-estate",
-  "productName": "Yes Residental Real Estate",
+  "name": "yes_residential_real_estate",
+  "productName": "Yes Residential Real Estate",
   "version": "1.0.0",
-  "description": "Yes Residental Real Estate Manager Application",
+  "description": "Yes Residential Real Estate Manager Application",
   "main": "./bootstrapper.js",
   "private": true,
   "repository": {
@@ -28,7 +28,7 @@
     "zepto-node": "1.0.0"
   },
   "build": {
-    "app-bundle-id": "tech.okami.yes-residental-real-estate",
+    "app-bundle-id": "tech.okami.yes-residential-real-estate",
     "app-category-type": "private.app-category.utilities",
     "asar": false
   }
