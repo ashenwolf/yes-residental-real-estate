@@ -1,2 +1,2 @@
-# yes-residental-real-estate
+# yes-residential-real-estate
 
