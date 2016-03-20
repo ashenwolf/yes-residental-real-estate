@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="realestateApp">
   <head>
     <meta charset="UTF-8">
     <title>Yes Residential Real Estate Updater App</title>
 
     <link rel="stylesheet" href="./vendor/mdl/material.min.css">
     <link rel="stylesheet" href="./vendor/mdl/material-icons.css">
+    <link rel="stylesheet" href="./node_modules/angular/angular-csp.css">
     <link rel="stylesheet" href="./css/style.css">
   </head>
-  <body>
+  <body ng-controller="RealEstateCtrl">
     <!-- Simple header with fixed tabs. -->
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header
                 mdl-layout--fixed-tabs mdl-layout--no-drawer-button">
@@ -20,13 +21,13 @@
         </div>
         <!-- Tabs -->
         <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-          <span class="mdl-layout__tab tab-auth">Authenticate</span>
-          <span class="mdl-layout__tab tab-select">Select Sheet</span>
-          <span class="mdl-layout__tab tab-update">Update Data</span>
+          <span class="mdl-layout__tab tab-auth" ng-class="{'is-active': appState === AppStates.AUTH}">Authenticate</span>
+          <span class="mdl-layout__tab tab-select" ng-class="{'is-active': appState === AppStates.SELECTION}">Select Sheet</span>
+          <span class="mdl-layout__tab tab-update" ng-class="{'is-active': appState === AppStates.UPDATE}">Update Data</span>
         </div>
       </header>
       <main class="mdl-layout__content">
-        <section class="mdl-layout__tab-panel tab-auth">
+        <section class="mdl-layout__tab-panel tab-auth" ng-class="{'is-active': appState == AppStates.AUTH}">
           <div class="page-content">
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--12-col">
@@ -39,12 +40,13 @@
                     to access your Google Drive based spreadsheets.</p>
                   </div>
                   <div class="mdl-card__actions mdl-card--border">
-                    <div class="action-container">
-                      <a id="start-auth" class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect">
+                    <div class="action-container" ng-hide="waiting">
+                      <a id="start-auth" class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect"
+                          ng-click="startAuth()">
                         Authenticate
                       </a>
                     </div>
-                    <div class="wait-container">
+                    <div class="wait-container" ng-show="waiting">
                       <p>Authenticating and fetching your Google Spreadsheets...</p>
                       <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
                     </div>
@@ -54,7 +56,7 @@
             </div>
           </div>
         </section>
-        <section class="mdl-layout__tab-panel tab-select">
+        <section class="mdl-layout__tab-panel tab-select" ng-class="{'is-active': appState === AppStates.SELECTION}">
           <div class="page-content">
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--12-col">
@@ -68,6 +70,23 @@
                   </div>
                   <div class="mdl-card__actions mdl-card--border">
                     <ul id="sheets" class="demo-list-icon mdl-list">
+                      <li class="mdl-list__item" ng-repeat="sheet in sheets">
+                       <span class="mdl-list__item-primary-content">
+                         <img src="./img/sheets.png" width="32px">
+                         <span style="margin-left: 1em;">{{sheet.name}}</span>
+                       </span>
+                       <span class="mdl-list__item-secondary-action">
+                         <button id="sheet-selector-{{$index}}"
+                           class="mdl-button mdl-js-button mdl-button--icon">
+                           <i class="material-icons">more_vert</i>
+                         </button>
+                         <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+                             for="sheet-selector-{{$index}}" id="sheet-menu-{{$index}}">
+                             <li class="mdl-menu__item" ng-repeat="insheet in sheet.sheets"
+                               ng-click="sheetSelected(sheet.id, sheet.name, insheet)">{{insheet}}</li>
+                          </ul>
+                       </span>
+                     </li>
                     </ul>
                   </div>
                 </div>
@@ -75,7 +94,7 @@
             </div>
           </div>
         </section>
-        <section class="mdl-layout__tab-panel tab-update">
+        <section class="mdl-layout__tab-panel tab-update" ng-class="{'is-active': appState === AppStates.UPDATE}">
           <div class="page-content">
             <div class="mdl-grid">
               <div class="mdl-cell mdl-cell--12-col">
@@ -84,17 +103,18 @@
                     <h2 class="mdl-card__title-text">Update the real estate data</h2>
                   </div>
                   <div class="mdl-card__supporting-text">
-                    <p>Used spreadsheet: <img src="./img/sheets.png" width="16px"> <span id="filename"></span></p>
+                    <p>Used spreadsheet: <img src="./img/sheets.png" width="16px"> {{ file_name }}</p>
                     <p>Select the e-mail to be used as a source for the real estate
                     data updates.</p>
                   </div>
                   <div class="mdl-card__actions mdl-card--border">
-                    <div class="action-container">
-                      <span id="estate-update" class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect">
+                    <div class="action-container" ng-hide="waiting">
+                      <span id="estate-update" class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect"
+                            ng-click="selectMailAndUpdate()">
                         Choose mail and update real estate data
                       </span>
                     </div>
-                    <div class="wait-container">
+                    <div class="wait-container" ng-show="waiting">
                       <p>Reading your mail and updating Google Spreadsheet...</p>
                       <div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
                     </div>

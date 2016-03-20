@@ -39,7 +39,7 @@ function createWindow () {
   mainWindow = new BrowserWindow({
     "width": 480,
     "height": 640,
-    'resizable': false,
+    //'resizable': false,
   });
   mainWindow.setMenu(null);
   mainWindow.loadURL('file://' + __dirname + '/index.html');
