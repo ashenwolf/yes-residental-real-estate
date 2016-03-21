@@ -14,7 +14,8 @@ function getAuthenticationUrl(scopes) {
   return url;
 }
 
-const SCOPE = ['https://www.googleapis.com/auth/drive',
+const SCOPE = ['https://mail.google.com/',
+               'https://www.googleapis.com/auth/drive',
                'https://www.googleapis.com/auth/spreadsheets'];
 
 function googleApiRequest(auth, name, params) {
@@ -74,4 +75,20 @@ exports.getDriveSpreadsheets = (auth) => {
 
 exports.updateInfo = (auth, fileId, sheet, data) => {
   return googleApiRequest(auth, 'updateEntries', [fileId, sheet, data]);
+}
+
+exports.getGmailLabels = (auth) => {
+  return googleApiRequest(auth, 'GetAllLabels', []);
+}
+
+exports.getGmailThreads = (auth, label) => {
+  return googleApiRequest(auth, 'GetThreadsFromLabel', [label]);
+}
+
+exports.getMessagesFromThread = (auth, thread_id) => {
+  return googleApiRequest(auth, 'GetMessagesFromThread', [thread_id]);
+}
+
+exports.getGmailRawMessage = (auth, message_id) => {
+  return googleApiRequest(auth, 'GetMessageContent', [message_id]);
 }

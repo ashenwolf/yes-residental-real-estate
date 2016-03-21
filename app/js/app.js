@@ -3,7 +3,7 @@
 import fetch from 'node-fetch';
 import angular from 'angular';
 import { stringify } from 'querystring';
-import { parseMail } from './mailparse';
+import mailTools from './mailparse';
 import googleapi from './googleapi';
 
 const remote = require('electron').remote;
@@ -11,14 +11,14 @@ const BrowserWindow = remote.BrowserWindow;
 const Dialog = remote.require('dialog');
 
 const browserWindowParams = {
-     'use-content-size': true,
-     'center': true,
-     'show': false,
-     'resizable': false,
-     'always-on-top': true,
-     'standard-window': true,
-     'auto-hide-menu-bar': true,
-     'node-integration': false
+   'use-content-size': true,
+   'center': true,
+   'show': false,
+   'resizable': false,
+   'always-on-top': true,
+   'standard-window': true,
+   'auto-hide-menu-bar': true,
+   'node-integration': false
  };
 
 var realestateApp = angular.module('realestateApp', []);
@@ -26,8 +26,9 @@ var realestateApp = angular.module('realestateApp', []);
 realestateApp.controller('RealEstateCtrl', function ($scope) {
   const AppStates = Object.freeze({
       AUTH: 0,
-      SELECTION: 1,
-      UPDATE: 2,
+      MAIL_SELECTION: 1,
+      SHEET_SELECTION: 2,
+      UPDATE: 3,
   });
 
   function openAuthWindow() {
@@ -66,9 +67,13 @@ realestateApp.controller('RealEstateCtrl', function ($scope) {
 
   $scope.AppStates = AppStates;
 
+  $scope.labels = [];
+  $scope.threads = [];
+  $scope.visible_threads = [];
+  $scope.selected_label = null;
   $scope.sheets = null;
   $scope.file = null;
-  $scope.name = null;
+  $scope.file_name = null;
   $scope.sheet = null;
   $scope.appState = AppStates.AUTH;
   $scope.waiting = false;
@@ -80,11 +85,11 @@ realestateApp.controller('RealEstateCtrl', function ($scope) {
     if (auth_token !== null) {
       $scope.access_token = await googleapi.getToken(auth_token);
       if ($scope.access_token !== null) {
-        $scope.sheets = await googleapi.getDriveSpreadsheets($scope.access_token);
+        $scope.labels = await googleapi.getGmailLabels($scope.access_token);
 
         $scope.waiting = false;
-        if ($scope.sheets !== null) {
-          $scope.appState = AppStates.SELECTION;
+        if ($scope.labels !== null) {
+          $scope.appState = AppStates.MAIL_SELECTION;
         }
         else
           $scope.appState = AppStates.AUTH;
@@ -96,29 +101,72 @@ realestateApp.controller('RealEstateCtrl', function ($scope) {
       $scope.waiting = false;
     }
     $scope.$apply();
-    componentHandler.upgradeAllRegistered();
   };
 
-  $scope.sheetSelected = (file_id, file_name, sheet_name) => {
+  $scope.updateMails = async () => {
+    $scope.waiting = true;
+    $scope.threads = await googleapi.getGmailThreads($scope.access_token, $scope.selected_label);
+    console.log($scope.threads);
+    $scope.visible_threads = $scope.threads;
+    $scope.waiting = false;
+    $scope.$apply();
+  }
+
+  $scope.expandThread = async (id) => {
+    $scope.waiting = true;
+    var visible_threads = [];
+    for (var i = 0; i < $scope.threads.length; i++) {
+      var thread = $scope.threads[i];
+      visible_threads.push(thread);
+      console.log(thread.id);
+      console.log(id);
+      if (thread.id === id) {
+        thread.expanded = true;
+        var messages = await googleapi.getMessagesFromThread($scope.access_token, id);
+        visible_threads = visible_threads.concat(messages);
+      }
+    }
+    console.log(visible_threads);
+    $scope.visible_threads = visible_threads;
+    $scope.waiting = false;
+    $scope.$apply();
+  }
+
+  $scope.collapseThread = (i, id) => {
+    $scope.threads[i].expanded = false;
+    $scope.visible_threads = $scope.threads;
+  }
+
+  $scope.useMail = async (id) => {
+    $scope.waiting = true;
+    $scope.mail_data = await googleapi.getGmailRawMessage($scope.access_token, id);
+    $scope.sheets = await googleapi.getDriveSpreadsheets($scope.access_token);
+    if ($scope.mail_data != null && $scope.sheets != null) {
+      $scope.appState = AppStates.SHEET_SELECTION;
+    }
+    $scope.waiting = false;
+    $scope.$apply();
+    componentHandler.upgradeAllRegistered();
+  }
+
+  $scope.sheetSelected = async (file_id, file_name, sheet_name) => {
     $scope.file  = file_id;
     $scope.file_name  = file_name;
     $scope.sheet = sheet_name;
+    $scope.sheet_data = await mailTools.parseMailString($scope.mail_data,
+      ["Street Address", "City", "County", "State", "Zip", "Occupancy Status", "Starting Bid"]);
     $scope.appState = AppStates.UPDATE;
+    $scope.$apply();
   };
 
   $scope.selectMailAndUpdate = async () => {
     $scope.waiting = true;
-    var fileName = await selectFile();
-    console.log(fileName);
-    var data = await parseMail(fileName,
-      ["Street Address", "City", "County", "State", "Zip", "Occupancy Status", "Starting Bid"]);
-    console.log(data);
-    var res = await googleapi.updateInfo($scope.access_token, $scope.file, $scope.sheet, data);
+    var res = await googleapi.updateInfo($scope.access_token,
+      $scope.file, $scope.sheet, $scope.sheet_data);
     console.log(res);
-    alert("Synchronization finsihed. Please check your Google spreadsheet.");
-    console.log(data);
     $scope.waiting = false;
     $scope.$apply();
+    alert("Synchronization finsihed. Please check your Google spreadsheet.");
   };
 });
 
